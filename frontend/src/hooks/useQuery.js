@@ -4,6 +4,11 @@ import { Axios } from "../utils/axios";
 const useQuery = (url) => {
   const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [reFetch, setReFetch] = useState(false);
+
+  const reFetchData = () => {
+    setReFetch((pre) => !pre);
+  };
 
   useEffect(() => {
     Axios.get(url)
@@ -13,8 +18,8 @@ const useQuery = (url) => {
       })
       .catch((error) => console.log(`${url} Query error: `, error))
       .finally(() => setIsLoading(false));
-  }, []);
-  return { data, isLoading };
+  }, [reFetch, url]);
+  return { data, isLoading, reFetchData };
 };
 
 export default useQuery;

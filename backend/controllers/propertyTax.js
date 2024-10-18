@@ -27,7 +27,9 @@ exports.createPropertyTax = async (req, res) => {
 // Get All Property Tax Records
 exports.getAllPropertyTaxes = async (req, res) => {
   try {
-    const propertyTaxes = await PropertyTax.find();
+    const propertyTaxes = await PropertyTax.find().populate(
+      "ulbName zone ward"
+    );
     res.json(propertyTaxes);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err });
