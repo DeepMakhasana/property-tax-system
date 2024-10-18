@@ -45,6 +45,7 @@ const Profile = () => {
                         </div>
                     ) : (
                         <div>
+                            {data?.length === 0 && <p>No have any payment history.</p>}
                             {
                                 data.map((history) => (
                                     <div key={history._id} className="card mt-3 p-2">

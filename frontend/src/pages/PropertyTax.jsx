@@ -13,7 +13,7 @@ const PropertyTax = () => {
     const [formData, setFormData] = useState(initialState);
     const [paymentStatus, setPaymentStatus] = useState(null);
     const [propertyDetail, setPropertyDetail] = useState(null);
-    const [zone, setZone] = useState(null);
+    const [zone, setZone] = useState([]);
     const [ward, setWard] = useState(null);
     const [propertyDetailLoading, setPropertyDetailLoading] = useState(false);
     const { mutate, loading } = useMutation();
@@ -98,6 +98,22 @@ const PropertyTax = () => {
         }
     }, [paymentStatus])
 
+    useEffect(() => {
+        if (formData.ulb) {
+            Axios.get(`/ulb/${formData.ulb}/zones`).then((res) => {
+                setZone(res.data);
+            }).catch((error) => console.log(error))
+        }
+    }, [formData.ulb])
+
+    useEffect(() => {
+        if (formData.zone) {
+            Axios.get(`/ulb/zones/${formData.zone}/wards`).then((res) => {
+                setWard(res.data);
+            }).catch((error) => console.log(error))
+        }
+    }, [formData.zone])
+
     if (paymentStatus) {
         return (
             <section className="container">
@@ -127,8 +143,8 @@ const PropertyTax = () => {
                         <div className="input-group has-validation">
                             <select className="form-select" id="ulb" aria-label="Default select example" onChange={(e) => {
                                 onChangeHandler(e);
-                                const selectedUlb = ulb.filter((data) => data._id == e.target.value);
-                                setZone(selectedUlb[0].zones.map((zone) => zone))
+                                // const selectedUlb = ulb.filter((data) => data._id == e.target.value);
+                                // setZone(selectedUlb[0].zones.map((zone) => zone))
                             }}>
                                 <option selected>Select Nagarpalika</option>
                                 {
@@ -156,8 +172,8 @@ const PropertyTax = () => {
                         </label>
                         <select className="form-select" id="zone" aria-label="Default select example" onChange={(e) => {
                             onChangeHandler(e);
-                            const selectedZone = zone.filter((data) => data._id == e.target.value);
-                            setWard(selectedZone[0].wards.map((ward) => ward))
+                            // const selectedZone = zone.filter((data) => data._id == e.target.value);
+                            // setWard(selectedZone[0].wards.map((ward) => ward))
                         }}>
                             <option selected>Select Zone</option>
                             {

@@ -1,5 +1,15 @@
 const express = require("express");
-const { register, login, registerAdmin, loginAdmin } = require("../controllers/auth");
+const {
+  register,
+  login,
+  registerAdmin,
+  loginAdmin,
+  getAllUser,
+  getUser,
+  updateUser,
+  deleteUser,
+  usersCount,
+} = require("../controllers/auth");
 const router = express.Router();
 
 // @route   POST /api/auth/register
@@ -21,5 +31,12 @@ router.post("/admin/register", registerAdmin);
 // @desc    Login as admin
 // @access  Public
 router.post("/admin/login", loginAdmin);
+
+// get all users
+router.get("/users", getAllUser);
+router.get("/usersCount", usersCount);
+router.get("/users/:id", getUser);
+router.post("/users/:id", updateUser);
+router.delete("/users/:id", deleteUser);
 
 module.exports = router;

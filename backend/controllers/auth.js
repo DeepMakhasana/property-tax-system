@@ -63,6 +63,94 @@ exports.login = async (req, res) => {
   }
 };
 
+// GET all users excluding password
+exports.getAllUser = async (req, res) => {
+  try {
+    // Find all users and exclude the password field
+    const users = await User.find().select("-password");
+
+    res.json(users);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.getUser = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    // Find the user by id, but exclude the password field
+    const user = await User.findById(userId).select("-password");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.updateUser = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const updateData = req.body;
+
+    // Prevent updating the password directly through this route
+    if (updateData.password) {
+      return res.status(400).json({ message: "Password update is not allowed here" });
+    }
+
+    // Update the user, excluding password and return the updated user
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      updateData,
+      { new: true, runValidators: true } // Return the updated document
+    ).select("-password");
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(201).json(updatedUser);
+  } catch (error) {
+    console.error("Error updating user:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.deleteUser = async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    // Find and delete the user by ID
+    const deletedUser = await User.findByIdAndDelete(userId);
+
+    if (!deletedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({ message: "User deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.usersCount = async (req, res) => {
+  try {
+    // Count the total number of users
+    const totalUsers = await User.countDocuments();
+
+    res.json({ totalUsers });
+  } catch (error) {
+    console.error("Error fetching total users:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 // Admin Registration
 exports.registerAdmin = async (req, res) => {
   const { email, password } = req.body;

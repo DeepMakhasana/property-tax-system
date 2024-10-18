@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { Collapse } from "bootstrap";
 
 const NavigationBar = () => {
-  const { authenticated } = useAuth();
+  const { authenticated, user } = useAuth();
   const navbarTogglerRef = useRef(null); // To reference the navbar collapse
 
   const handleNavLinkClick = () => {
@@ -49,14 +49,14 @@ const NavigationBar = () => {
                   </Link>
                 </li>
               )}
-              {authenticated && (
+              {authenticated && user?.user?.role !== "admin" && (
                 <li className="nav-item">
                   <Link className="nav-link" to="/property-tax" onClick={handleNavLinkClick}>
                     Property-tax
                   </Link>
                 </li>
               )}
-              {authenticated && (
+              {authenticated && user?.user?.role !== "admin" && (
                 <li className="nav-item">
                   <Link className="nav-link" to="/profile" onClick={handleNavLinkClick}>
                     Profile
@@ -74,6 +74,14 @@ const NavigationBar = () => {
                 <li className="nav-item mt-2 mx-2">
                   <Link className="btn btn-outline-secondary" to="/admin/login" onClick={handleNavLinkClick}>
                     Admin Login
+                  </Link>
+                </li>
+              )}
+
+              {user?.user?.role === "admin" && (
+                <li className="nav-item">
+                  <Link className="nav-link" to="/dashboard" onClick={handleNavLinkClick}>
+                    Dashboard
                   </Link>
                 </li>
               )}

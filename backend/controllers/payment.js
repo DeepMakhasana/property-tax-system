@@ -79,35 +79,15 @@ async function paymentHistory(req, res) {
     const { userId } = req.params;
     const history = await Payment.find({ userId })
       .populate({
-        path: "propertyId",
-        model: "PropertyTax",
-        // populate: [
-        //   {
-        //     path: "ulbName",
-        //     model: "ULB", // Populating ULB details
-        //   },
-        //   {
-        //     path: "zone",
-        //     model: "Zone", // Populating Zone details
-        //   },
-        //   {
-        //     path: "ward",
-        //     model: "Ward", // Populating Ward details
-        //   },
-        // ],
+        path: "propertyId", // Populating property details
+        model: "PropertyTax", // Model being referenced
+        populate: [
+          { path: "ulbName", model: "ULB" }, // Populating related ULB details
+          { path: "zone", model: "Zone" }, // Populating related Zone details
+          { path: "ward", model: "Ward" }, // Populating related Ward details
+        ],
       })
       .exec();
-
-    // const history = await Payment.aggregate([
-    //   {
-    //     $lookup: {
-    //       from: "propertytaxes", // The collection to join
-    //       localField: "propertyId", // Field from the `orders` collection
-    //       foreignField: "_id", // Field from the `customers` collection
-    //       as: "property", // Output array field name
-    //     },
-    //   },
-    // ]);
 
     res.json(history);
   } catch (error) {
@@ -116,4 +96,37 @@ async function paymentHistory(req, res) {
   }
 }
 
-module.exports = { paymentOrder, paymentVerify, paymentHistory };
+async function recentPaymentHistory(req, res) {
+  try {
+    const history = await Payment.find()
+      .populate({
+        path: "propertyId", // Populating property details
+        model: "PropertyTax", // Model being referenced
+        populate: [
+          { path: "ulbName", model: "ULB" }, // Populating related ULB details
+          { path: "zone", model: "Zone" }, // Populating related Zone details
+          { path: "ward", model: "Ward" }, // Populating related Ward details
+        ],
+      })
+      .exec();
+
+    res.json(history);
+  } catch (error) {
+    res.status(500).json({ message: "Internal Server Error!" });
+    console.log(error);
+  }
+}
+
+const totalPayments = async (req, res) => {
+  try {
+    // Count the total number of payments
+    const totalPayments = await Payment.countDocuments();
+
+    res.json({ totalPayments });
+  } catch (error) {
+    console.error("Error fetching total payments:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+module.exports = { paymentOrder, paymentVerify, paymentHistory, totalPayments, recentPaymentHistory };

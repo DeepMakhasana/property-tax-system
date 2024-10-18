@@ -3,7 +3,7 @@ import useAuth from './hooks/useAuth';
 import { useEffect } from 'react';
 
 const DashboardLayout = () => {
-    const { user } = useAuth();
+    const { user, setAuthToken } = useAuth();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -43,8 +43,8 @@ const DashboardLayout = () => {
                             <a className="navbar-brand" href="#">Welcome, Admin!</a>
                             <div>
                                 <ul className="navbar-nav ms-auto mb-2 mb-lg-0">
-                                    <li className="nav-item">
-                                        <div className="nav-link">Logout</div>
+                                    <li className="nav-item" style={{ cursor: "pointer" }}>
+                                        <div className="nav-link" onClick={() => setAuthToken("")}>Logout</div>
                                     </li>
                                 </ul>
                             </div>

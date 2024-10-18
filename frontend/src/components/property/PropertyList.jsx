@@ -11,7 +11,7 @@ const PropertyList = ({ reFetch }) => {
   }, [reFetch]);
 
   return (
-    <div className="container mt-5 p-0">
+    <div className="container my-5 p-0">
       <h2 className="mb-3">Property Tax Records</h2>
       {isLoading ? (
         <div className="d-flex justify-content-center align-items-center">
