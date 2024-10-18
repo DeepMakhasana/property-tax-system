@@ -26,7 +26,7 @@ const Dashboard = () => {
                             {
                                 userLoading ? <p>Loading...</p> : <h5 className="card-title">{users?.totalUsers < 10 && "0"}{users?.totalUsers}</h5>
                             }
-                            <p className="card-text">Total number of payments</p>
+                            <p className="card-text">Total number of users</p>
                         </div>
                     </div>
                 </div>

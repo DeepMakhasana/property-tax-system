@@ -27,9 +27,7 @@ exports.createPropertyTax = async (req, res) => {
 // Get All Property Tax Records
 exports.getAllPropertyTaxes = async (req, res) => {
   try {
-    const propertyTaxes = await PropertyTax.find().populate(
-      "ulbName zone ward"
-    );
+    const propertyTaxes = await PropertyTax.find().populate("ulbName zone ward");
     res.json(propertyTaxes);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err });
@@ -51,18 +49,21 @@ exports.getPropertyTaxById = async (req, res) => {
 
 // Update Property Tax Record
 exports.updatePropertyTax = async (req, res) => {
-  const { propertyId } = req.params;
-  const { zone, taxAmount, ward, address, ownerName, ulbName, tenementNumber } = req.body;
+  const { propertyId: id } = req.params;
+  // const { zone, taxAmount, ward, address, ownerName, ulbName, tenementNumber } = req.body;
+  const { propertyId, zone, taxAmount, rebateAmount, ward, address, ownerName, ulbName, tenementNumber } = req.body;
 
   try {
-    let propertyTax = await PropertyTax.findOne({ propertyId });
+    let propertyTax = await PropertyTax.findOne({ propertyId: id });
     if (!propertyTax) {
       return res.status(404).json({ message: "Property Tax not found" });
     }
 
     // Update fields
+    propertyTax.propertyId = propertyId || propertyTax.propertyId;
     propertyTax.zone = zone || propertyTax.zone;
     propertyTax.taxAmount = taxAmount || propertyTax.taxAmount;
+    propertyTax.rebateAmount = rebateAmount || propertyTax.rebateAmount;
     propertyTax.ward = ward || propertyTax.ward;
     propertyTax.address = address || propertyTax.address;
     propertyTax.ownerName = ownerName || propertyTax.ownerName;
@@ -70,7 +71,7 @@ exports.updatePropertyTax = async (req, res) => {
     propertyTax.tenementNumber = tenementNumber || propertyTax.tenementNumber;
 
     const updatedPropertyTax = await propertyTax.save();
-    res.json(updatedPropertyTax);
+    res.status(201).json(updatedPropertyTax);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err });
   }

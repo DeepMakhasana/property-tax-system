@@ -6,7 +6,6 @@ import toast, { Toaster } from "react-hot-toast";
 import useQuery from "../../hooks/useQuery";
 import { Axios } from "../../utils/axios";
 import useMutation from "../../hooks/useMutation";
-import PropertyList from "../../components/property/PropertyList";
 
 const initialState = {
   propertyId: "",
@@ -20,15 +19,29 @@ const initialState = {
   tenementNumber: "",
 };
 
+const editInitialState = {
+  tenementNumber: "",
+  propertyId: ""
+}
+
 const PropertyAdd = () => {
   const [formData, setFormData] = useState(initialState);
   const { data: ulbs } = useQuery("/ulb");
   const { mutate } = useMutation();
   const [reFetch, setReFetch] = useState(false);
+  const [editId, setEditId] = useState(editInitialState);
 
   // const [ulbs, setUlbs] = useState([]);
   const [zones, setZones] = useState([]);
   const [wards, setWards] = useState([]);
+  const { data: propertyTaxes, isLoading, reFetchData } = useQuery("/property");
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth', // Adds a smooth scroll effect
+    });
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -37,23 +50,50 @@ const PropertyAdd = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const result = await mutate(`/property`, {
-      ...formData,
-      taxAmount: Number(formData.taxAmount),
-      rebateAmount: Number(formData.rebateAmount),
-      tenementNumber: Number(formData.tenementNumber),
-    });
+    if (editId?.propertyId != "") {
+      console.log("edited: ", formData)
+      const editResult = await mutate(`/property/${editId?.propertyId}`, {
+        ...formData,
+        taxAmount: Number(formData.taxAmount),
+        rebateAmount: Number(formData.rebateAmount),
+        tenementNumber: Number(formData.tenementNumber),
+      });
 
-    if (result.status === 201) {
-      toast.success("Property created Successful!");
-      setFormData(initialState);
-      setReFetch((pre) => !pre);
+      if (editResult.status === 201) {
+        toast.success("Property Edited Successful!");
+        setFormData(initialState);
+        setReFetch((pre) => !pre);
+      } else {
+        toast.error(editResult?.response?.data?.msg || "Fail try again!");
+      }
     } else {
-      toast.error(result?.response?.data?.msg || "Fail try again!");
-    }
+      const result = await mutate(`/property`, {
+        ...formData,
+        taxAmount: Number(formData.taxAmount),
+        rebateAmount: Number(formData.rebateAmount),
+        tenementNumber: Number(formData.tenementNumber),
+      });
 
-    console.log(formData, result);
+      if (result.status === 201) {
+        toast.success("Property created Successful!");
+        setFormData(initialState);
+        setReFetch((pre) => !pre);
+      } else {
+        toast.error(result?.response?.data?.msg || "Fail try again!");
+      }
+
+      console.log(formData, result);
+    }
   };
+
+  const handleDelete = async (id) => {
+    Axios.delete(`/property/${id}`)
+      .then((res) => {
+        toast.success(res?.data?.message);
+        setReFetch((pre) => !pre);
+      })
+      .catch((error) => console.log(error));
+  }
 
   useEffect(() => {
     if (formData.ulbName) {
@@ -74,6 +114,34 @@ const PropertyAdd = () => {
         .catch((error) => console.log(error));
     }
   }, [formData.zone]);
+
+  useEffect(() => {
+    if (editId.tenementNumber != "") {
+      Axios.get(`/property/${editId.tenementNumber}`)
+        .then((res) => {
+          console.log(res)
+          scrollToTop()
+          setFormData({
+            propertyId: res?.data?.propertyId,
+            ulbName: res?.data?.ulbName,
+            zone: res?.data?.zone,
+            ward: res?.data?.ward,
+            taxAmount: res?.data?.taxAmount,
+            rebateAmount: res?.data?.rebateAmount,
+            address: res?.data?.address,
+            ownerName: res?.data?.ownerName,
+            tenementNumber: res?.data?.tenementNumber,
+          });
+        })
+        .catch((error) => console.log(error));
+    }
+  }, [editId]);
+
+  useEffect(() => {
+    if (reFetch) {
+      reFetchData();
+    }
+  }, [reFetch]);
 
   return (
     <div className="container mt-4 p-0">
@@ -127,6 +195,7 @@ const PropertyAdd = () => {
                 value={formData.propertyId}
                 onChange={handleChange}
                 placeholder="Property ID"
+                disabled={editId?.propertyId ? true : false}
                 required
               />
             </div>
@@ -246,13 +315,16 @@ const PropertyAdd = () => {
                 value={formData.tenementNumber}
                 onChange={handleChange}
                 placeholder="Tenement Number"
+                disabled={editId?.propertyId ? true : false}
                 required
               />
             </div>
 
             <div className="col-md-12">
               <button type="submit" className="btn btn-primary">
-                Submit
+                {
+                  editId.propertyId != "" ? "Edit" : "Submit"
+                }
               </button>
             </div>
           </div>
@@ -260,7 +332,71 @@ const PropertyAdd = () => {
       </div>
 
       {/* property listing */}
-      <PropertyList reFetch={reFetch} />
+      <div className="container my-5 p-0">
+        <h2 className="mb-3">Property Tax Records</h2>
+        {isLoading ? (
+          <div className="d-flex justify-content-center align-items-center">
+            <span
+              className="spinner-border spinner-border-sm"
+              aria-hidden="true"
+            ></span>
+            <span role="status">Loading...</span>
+          </div>
+        ) : (
+          <div className="table-responsive mt-3">
+            <table className="table table-bordered table-hover">
+              <thead className="thead-dark">
+                <tr>
+                  <th scope="col" style={{ minWidth: "150px" }}>
+                    Property ID
+                  </th>
+                  <th scope="col" style={{ minWidth: "200px" }}>
+                    ULB Name
+                  </th>
+                  <th scope="col" style={{ minWidth: "150px" }}>
+                    Owner Name
+                  </th>
+                  <th scope="col" style={{ minWidth: "200px" }}>
+                    Tenement Number
+                  </th>
+                  <th scope="col" style={{ minWidth: "150px" }}>
+                    Tax Amount
+                  </th>
+                  <th scope="col" style={{ minWidth: "150px" }}>
+                    Rebate Amount
+                  </th>
+                  <th scope="col" style={{ minWidth: "150px" }}>
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {propertyTaxes?.length > 0 ? (
+                  propertyTaxes?.map((tax, index) => (
+                    <tr key={index}>
+                      <td>{tax?.propertyId}</td>
+                      <td>{tax?.ulbName.name}</td>
+                      <td>{tax?.ownerName}</td>
+                      <td>{tax?.tenementNumber}</td>
+                      <td>{tax?.taxAmount}</td>
+                      <td>{tax?.rebateAmount}</td>
+                      <td>
+                        <div><span className="text-primary" style={{ cursor: "pointer" }} onClick={() => setEditId({ tenementNumber: tax?.tenementNumber, propertyId: tax?.propertyId })}>Edit</span> | <span className='text-primary' style={{ cursor: "pointer" }} onClick={() => { handleDelete(tax?.propertyId) }}>Delete</span></div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="6" className="text-center">
+                      No Property Tax Records Found
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
       {/* Toaster */}
       <Toaster />

@@ -27,7 +27,7 @@ router.get("/:tenementNumber", getPropertyTaxById);
 // @route   PUT /api/property/:propertyId
 // @desc    Update a property tax record by ID
 // @access  Public
-router.put("/:propertyId", updatePropertyTax);
+router.post("/:propertyId", updatePropertyTax);
 
 // @route   DELETE /api/property/:propertyId
 // @desc    Delete a property tax record by ID
